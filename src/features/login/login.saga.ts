@@ -1,4 +1,5 @@
-import { call, put, takeLeading } from 'redux-saga/effects'
+import { PayloadAction } from '@reduxjs/toolkit'
+import { call, put, take, takeLeading } from 'redux-saga/effects'
 import { LoginPayload, Response, UserInfo } from '~/interface'
 import { apolloClient, LOGIN } from '~/utils'
 import { loginActions } from '..'
@@ -34,7 +35,7 @@ export function* handleLogin({
       accessToken: string
    }> = yield call(login, payload)
 
-   console.log('Response', res)
+   console.log('Login Response:', res)
 
    if (res.isSuccess) {
       yield put(loginActions.loginSuccess(res.data!))
@@ -44,5 +45,13 @@ export function* handleLogin({
 }
 
 export function* loginSaga() {
-   yield takeLeading(loginActions.login, handleLogin)
+   while (true) {
+      // Listen login action
+      const action: PayloadAction<LoginPayload> = yield take(loginActions.login)
+      yield call(handleLogin, action)
+
+      // Listen logout action
+      yield take(loginActions.logout)
+      yield put(loginActions.logoutSuccess())
+   }
 }

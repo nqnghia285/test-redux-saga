@@ -7,34 +7,40 @@ import {
    UserInfo,
 } from '~/interface'
 
+export type LoginState = { isLogined: boolean; profile: UserInfo | null }
+
 const loginSlice = createSlice({
-   initialState: null,
-   name: 'profile',
+   initialState: {
+      isLogined: Boolean(localStorage.getItem(LSKeys.PROFILE)),
+      profile: localStorage.getItem(LSKeys.PROFILE),
+   } as LoginState,
+   name: 'loginState',
    reducers: {
-      login: (
-         state: UserInfo | null,
-         action: PayloadAction<LoginPayload>
-      ) => {},
+      login: (state: LoginState, action: PayloadAction<LoginPayload>) => {},
       loginSuccess: (
-         state: UserInfo | null,
+         state: LoginState,
          { payload: { accessToken, profile } }: PayloadAction<LoginSuccess>
       ) => {
-         state = profile
+         state.profile = profile
+         state.isLogined = true
          localStorage.setItem(LSKeys.AUTHORIZATION, accessToken)
          localStorage.setItem(LSKeys.PROFILE, JSON.stringify(profile))
 
-         console.log('loginSuccess', { accessToken, profile })
+         console.log('loginSuccess with response:', { accessToken, profile })
       },
-      loginFailed: (
-         state: UserInfo | null,
-         action: PayloadAction<Response>
-      ) => {
-         console.log('loginFailed', action.payload)
+      loginFailed: (state: LoginState, action: PayloadAction<Response>) => {
+         console.log('loginFailed with payload:', action.payload)
+         state.profile = null
+         state.isLogined = false
+         localStorage.removeItem(LSKeys.PROFILE)
+         localStorage.removeItem(LSKeys.AUTHORIZATION)
       },
-      logout: (state: UserInfo | null) => {
-         state = null
-         localStorage.setItem(LSKeys.PROFILE, '')
-         localStorage.setItem(LSKeys.AUTHORIZATION, '')
+      logout: (state: LoginState) => {},
+      logoutSuccess: (state: LoginState) => {
+         state.profile = null
+         state.isLogined = false
+         localStorage.removeItem(LSKeys.PROFILE)
+         localStorage.removeItem(LSKeys.AUTHORIZATION)
       },
    },
 })

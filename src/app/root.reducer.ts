@@ -1,7 +1,7 @@
 import { loginReducer } from '~/features/login'
 
 const rootReducer = {
-   profile: loginReducer,
+   loginState: loginReducer,
 }
 
 export default rootReducer
