@@ -1,62 +1,45 @@
-import { ApolloQueryResult } from '@apollo/client'
-import { call, delay, put, takeEvery, takeLeading } from 'redux-saga/effects'
+import { call, put, takeLeading } from 'redux-saga/effects'
 import { LoginPayload, Response, UserInfo } from '~/interface'
 import { apolloClient, LOGIN } from '~/utils'
 import { loginActions } from '..'
 
-export function* login(payload: LoginPayload) {
-   const res: ApolloQueryResult<{
-      logIn: Response<{
+export async function login(payload: LoginPayload) {
+   try {
+      const res = await apolloClient.query({
+         query: LOGIN,
+         fetchPolicy: 'network-only',
+         variables: payload,
+      })
+
+      return res.data.logIn as Response<{
          profile: UserInfo
          accessToken: string
-      } | null>
-   }> = yield call(apolloClient.query, {
-      query: LOGIN,
-      fetchPolicy: 'network-only',
-      variables: payload,
-   })
-
-   return res
+      }>
+   } catch (error) {
+      return {
+         action: 'logIn',
+         isSuccess: false,
+         data: null,
+         errors: [error],
+         message: 'Login failed',
+      } as Response
+   }
 }
 
 export function* handleLogin({
    payload,
 }: ReturnType<typeof loginActions.login>) {
-   try {
-      const {
-         data: { logIn },
-      }: ApolloQueryResult<{
-         logIn: Response<{
-            profile: UserInfo
-            accessToken: string
-         } | null>
-      }> = yield call(login, payload)
+   const res: Response<{
+      profile: UserInfo
+      accessToken: string
+   }> = yield call(login, payload)
 
-      console.log('Response', logIn)
+   console.log('Response', res)
 
-      if (logIn?.isSuccess) {
-         yield put(loginActions.loginSuccess(logIn.data!))
-      } else {
-         yield put(
-            loginActions.loginFailed({
-               action: 'logIn',
-               isSuccess: false,
-               data: null,
-               errors: [],
-               message: 'Login failed',
-            })
-         )
-      }
-   } catch (error) {
-      yield put(
-         loginActions.loginFailed({
-            action: 'logIn',
-            isSuccess: false,
-            data: null,
-            errors: [error],
-            message: 'Login failed',
-         })
-      )
+   if (res.isSuccess) {
+      yield put(loginActions.loginSuccess(res.data!))
+   } else {
+      yield put(loginActions.loginFailed(res))
    }
 }
 

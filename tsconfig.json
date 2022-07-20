@@ -19,7 +19,7 @@
       "experimentalDecorators": true,
       "emitDecoratorMetadata": true,
       "incremental": true,
-      "outDir": "build",
+      "outDir": "dist",
       "baseUrl": ".",
       "paths": {
          "~/": ["src/"],
