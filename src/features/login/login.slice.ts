@@ -36,11 +36,15 @@ const loginSlice = createSlice({
          localStorage.removeItem(LSKeys.AUTHORIZATION)
       },
       logout: (state: LoginState) => {},
-      logoutSuccess: (state: LoginState) => {
+      logoutSuccess: (state: LoginState, action: PayloadAction<Response>) => {
+         console.log('logoutSuccess with response:', action.payload)
          state.profile = null
          state.isLogined = false
          localStorage.removeItem(LSKeys.PROFILE)
          localStorage.removeItem(LSKeys.AUTHORIZATION)
+      },
+      logoutFailed: (state: LoginState, action: PayloadAction<Response>) => {
+         console.log('logoutFailed with response:', action.payload)
       },
    },
 })
